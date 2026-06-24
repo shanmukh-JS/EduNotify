@@ -5,18 +5,35 @@ import {
   MockEmailProvider 
 } from './mockProviders.js';
 
+import {
+  TwilioCallProvider,
+  TwilioSMSProvider
+} from './twilioProvider.js';
+
 // Singleton instances of providers for mock setup
 const mockCallInstance = new MockCallProvider();
 const mockSMSInstance = new MockSMSProvider();
 const mockWhatsAppInstance = new MockWhatsAppProvider();
 const mockEmailInstance = new MockEmailProvider();
 
+// Twilio instances
+let twilioCallInstance = null;
+let twilioSMSInstance = null;
+
+const hasTwilioCredentials = () => {
+  return process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER;
+};
+
 /**
  * Returns the active Call Provider.
  */
 export const getCallProvider = () => {
-  // Can expand to read configuration from environment variables / DB settings
-  // and switch to TwilioProvider or ExotelProvider dynamically.
+  if (hasTwilioCredentials()) {
+    if (!twilioCallInstance) {
+      twilioCallInstance = new TwilioCallProvider();
+    }
+    return twilioCallInstance;
+  }
   return mockCallInstance;
 };
 
@@ -24,6 +41,12 @@ export const getCallProvider = () => {
  * Returns the active SMS Provider.
  */
 export const getSMSProvider = () => {
+  if (hasTwilioCredentials()) {
+    if (!twilioSMSInstance) {
+      twilioSMSInstance = new TwilioSMSProvider();
+    }
+    return twilioSMSInstance;
+  }
   return mockSMSInstance;
 };
 
